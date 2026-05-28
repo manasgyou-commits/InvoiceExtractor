@@ -1,52 +1,43 @@
 name: Build APK
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
+    - uses: actions/checkout@v6
     
-    - name: Setup Python
-      uses: actions/setup-python@v6
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.10'
     
-    - name: Install system dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          git zip unzip openjdk-17-jdk \
-          python3-pip autoconf libtool \
-          pkg-config zlib1g-dev libncurses5-dev \
-          libncursesw5-dev libtinfo5 cmake \
-          libffi-dev libssl-dev \
-          automake libltdl-dev \
-          libsqlite3-dev tk-dev \
-          libgdbm-dev libc6-dev libbz2-dev \
-          libreadline-dev llvm libncursesw5-dev \
-          xz-utils tk-dev libxml2-dev libxmlsec1-dev \
-          liblzma-dev patchelf
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev automake patchelf
     
-    - name: Install Python dependencies
+    - name: Install buildozer
       run: |
-        pip install --upgrade pip setuptools wheel
-        pip install Cython==0.29.33 virtualenv
-        pip install buildozer
+        pip install --upgrade pip
+        pip install Cython==0.29.33 buildozer
     
-    - name: Build APK with Buildozer
+    - name: Build APK
       run: |
-        buildozer android debug
-      timeout-minutes: 45
+        buildozer android debug 2>&1 | tee build.log
+      timeout-minutes: 60
     
-    - name: Upload APK artifact
+    - name: Show error if build failed
+      if: failure()
+      run: |
+        echo "=== BUILD FAILED ==="
+        tail -n 100 build.log
+    
+    - name: Upload APK
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: invoice-extractor-apk
         path: bin/*.apk
-        if-no-files-found: error
+        
