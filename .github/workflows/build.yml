@@ -10,13 +10,13 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-
+      uses: actions/checkout@v6
+    
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.10'
-
+    
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -31,19 +31,19 @@ jobs:
           libgdbm-dev libc6-dev libbz2-dev \
           libreadline-dev llvm libncursesw5-dev \
           xz-utils tk-dev libxml2-dev libxmlsec1-dev \
-          libffi-dev liblzma-dev patchelf
-
+          liblzma-dev patchelf
+    
     - name: Install Python dependencies
       run: |
         pip install --upgrade pip setuptools wheel
         pip install Cython==0.29.33 virtualenv
         pip install buildozer
-
+    
     - name: Build APK with Buildozer
       run: |
         buildozer android debug
       timeout-minutes: 45
-
+    
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
